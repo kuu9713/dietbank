@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E3437C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ガマン貯金">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;-webkit-tap-highlight-color:transparent}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ガマン貯金</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* Layout: one phone-width column — a candy jar that fills with coins on top, then "what did you resist?" chips, the reward wishlist, and the log. */
+:root{
+  --bg:#FBF3F7; --surface:#FFFFFF; --sunk:#F5E7EF; --fg:#3A1F33; --muted:#8C6F82; --line:#EBD6E2;
+  --accent:#E3437C; --accent-soft:#FFC9DC; --accent-ink:#FFFFFF;
+  --gold:#F3B53A; --gold-deep:#C98A12; --mint:#22A88A; --mint-soft:#D4F3EA;
+  --glass:rgba(255,255,255,.55); --glass-line:#D9B9CB;
+  --f-display:"Dela Gothic One","Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;
+  --f-body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1D1320; --surface:#2A1D2E; --sunk:#241827; --fg:#F8E9F1; --muted:#B79AAE; --line:#3E2C43;
+  --accent:#FF6FA0; --accent-soft:#6B2A47; --accent-ink:#2A0E1C;
+  --gold:#F7C455; --gold-deep:#B9800F; --mint:#48D3B2; --mint-soft:#1F4A41;
+  --glass:rgba(255,255,255,.06); --glass-line:#6A4E66; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1D1320; --surface:#2A1D2E; --sunk:#241827; --fg:#F8E9F1; --muted:#B79AAE; --line:#3E2C43;
+  --accent:#FF6FA0; --accent-soft:#6B2A47; --accent-ink:#2A0E1C;
+  --gold:#F7C455; --gold-deep:#B9800F; --mint:#48D3B2; --mint-soft:#1F4A41;
+  --glass:rgba(255,255,255,.06); --glass-line:#6A4E66; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-weight:500;font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 96px}
+.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+.num{font-variant-numeric:tabular-nums}
+
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0;letter-spacing:.02em}
+h1 span{color:var(--accent)}
+.tag{font-size:12px;color:var(--muted)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center}
+.jar{width:100%;height:auto;overflow:visible}
+.jar .glass{fill:var(--glass);stroke:var(--glass-line);stroke-width:3}
+.jar .shine{fill:none;stroke:var(--surface);stroke-width:5;stroke-linecap:round;opacity:.7}
+.jar .lid{fill:var(--accent)}
+.jar .lid2{fill:var(--accent);opacity:.75}
+.jar .liquid{fill:var(--accent-soft);transition:y .8s cubic-bezier(.3,1.4,.5,1),height .8s cubic-bezier(.3,1.4,.5,1)}
+.coin circle:first-child{fill:var(--gold);stroke:var(--gold-deep);stroke-width:1.5}
+.coin circle:last-child{fill:none;stroke:var(--gold-deep);stroke-width:1;opacity:.6}
+.coin.c1 circle:first-child{fill:#F8D27A}
+.coin.c2 circle:first-child{fill:#EFA92A}
+.coin.drop{animation:drop .7s cubic-bezier(.25,1.6,.5,1) both;animation-delay:var(--d,0s)}
+@keyframes drop{from{transform:translateY(-200px)}to{transform:none}}
+.bal-label{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em}
+.bal{font-family:var(--f-display);font-size:clamp(36px,11vw,48px);line-height:1.05;color:var(--accent);margin:2px 0 6px;word-break:break-all}
+.bal small{font-size:.5em;margin-right:2px}
+.next{font-size:13px;background:var(--surface);border:1.5px dashed var(--line);border-radius:12px;padding:8px 10px}
+.next b{color:var(--accent)}
+.stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat .v{font-size:17px!important}
+.chips.plus{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chips.plus .chip{flex-direction:column;text-align:center;gap:4px;border-color:var(--mint-soft)}
+.chips.plus .chip:hover{border-color:var(--mint)}
+.chips.plus .chip .a{color:var(--mint)}
+.coin.p circle:first-child{fill:var(--mint);stroke:var(--mint)}
+.coin.p circle:last-child{stroke:var(--surface)}
+.log .pl{color:var(--mint)}
+@media (max-width:400px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--surface);border-radius:14px;padding:10px 12px}
+.stat .k{font-size:11px;color:var(--muted);font-weight:700}
+.stat .v{font-family:var(--f-display);font-size:19px;line-height:1.3}
+.stat .v small{font-family:var(--f-body);font-size:11px;font-weight:700;margin-left:2px}
+
+h2{font-size:17px;font-weight:900;margin:0 0 4px;text-wrap:balance}
+.sub{font-size:13px;color:var(--muted);margin:0 0 12px}
+
+/* presets */
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chip{display:flex;align-items:center;gap:10px;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px 12px;transition:transform .12s,border-color .12s}
+.chip:hover{border-color:var(--accent)}
+.chip:active{transform:scale(.96)}
+.chip .em{font-size:24px;line-height:1}
+.chip .t{display:block;font-size:13px;font-weight:700;line-height:1.3}
+.chip .a{display:block;font-size:12px;color:var(--accent);font-weight:900}
+.custom{display:grid;grid-template-columns:minmax(0,1fr) 96px auto;gap:8px;margin-top:10px}
+.field{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;width:100%;box-sizing:border-box}
+.field:focus{border-color:var(--accent);outline:none}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:10px 16px;font-weight:900;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:var(--sunk);color:var(--fg)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* wishes */
+.wishes{display:flex;flex-direction:column;gap:10px}
+.wish{background:var(--surface);border-radius:18px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}
+.wish .n{font-weight:900;font-size:15px;overflow-wrap:anywhere}
+.wish .p{font-size:12px;color:var(--muted)}
+.bar{grid-column:1/-1;height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .6s ease}
+.wish.ready{box-shadow:0 0 0 2px var(--mint) inset}
+.wish.ready .bar i{background:var(--mint)}
+.wish .btn{padding:8px 14px;font-size:13px}
+.wish.ready .btn{background:var(--mint);color:var(--surface)}
+.wish .x{grid-column:1/-1;display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:12px;text-decoration:underline}
+.got{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.got span{background:var(--mint-soft);color:var(--fg);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700}
+.addwish{display:grid;grid-template-columns:minmax(0,1fr) 104px auto;gap:8px;margin-top:10px}
+
+/* log */
+.log{list-style:none;margin:0;padding:0;background:var(--surface);border-radius:18px;overflow:hidden}
+.log li{display:grid;grid-template-columns:52px minmax(0,1fr) auto 34px;gap:8px;align-items:center;padding:10px 6px 10px 14px;border-bottom:1px solid var(--line)}
+.log li:last-child{border-bottom:0}
+.log .d{font-size:12px;color:var(--muted)}
+.log .nm{font-size:14px;overflow-wrap:anywhere}
+.log .am{font-weight:900;font-size:14px}
+.log .plus{color:var(--accent)}
+.log .minus{color:var(--mint)}
+.del{width:30px;height:30px;border-radius:99px;border:0;background:transparent;color:var(--muted);font-size:16px}
+.del.armed{background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:900;width:auto;padding:0 8px}
+.empty{background:var(--surface);border:2px dashed var(--line);border-radius:18px;padding:18px;text-align:center;color:var(--muted);font-size:13px}
+.more{margin-top:8px;width:100%}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--fg);color:var(--bg);font-weight:700;font-size:14px;border-radius:99px;padding:10px 18px;transition:.25s;max-width:calc(100vw - 40px);text-align:center;z-index:20}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.confetti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+.pop{animation:pop .4s ease}
+@keyframes pop{40%{transform:scale(1.08)}}
+@media (prefers-reduced-motion: reduce){.coin.drop,.pop,.confetti i{animation:none}.jar .liquid{transition:none}}
+@media (max-width:360px){.hero{grid-template-columns:120px 1fr}.custom,.addwish{grid-template-columns:1fr 1fr}.custom .btn,.addwish .btn{grid-column:1/-1}}
+</style>
+
+</head><body>
+<div class="wrap">
+  <header>
+    <h1>ガマン<span>貯金</span></h1>
+    <div class="tag">我慢した分だけ、ご褒美に。</div>
+  </header>
+
+  <section class="hero" aria-label="残高">
+    <svg class="jar" viewBox="0 0 200 250" role="img" aria-label="貯金びん">
+      <defs><clipPath id="jc"><path d="M38 70 h124 q14 0 14 16 v134 q0 20 -20 20 h-112 q-20 0 -20 -20 v-134 q0 -16 14 -16z"/></clipPath></defs>
+      <path class="glass" d="M38 70 h124 q14 0 14 16 v134 q0 20 -20 20 h-112 q-20 0 -20 -20 v-134 q0 -16 14 -16z"/>
+      <g clip-path="url(#jc)">
+        <rect class="liquid" id="liquid" x="0" y="240" width="200" height="0"/>
+        <g id="coins"></g>
+      </g>
+      <path class="shine" d="M44 100 v70"/>
+      <rect class="lid2" x="46" y="58" width="108" height="14" rx="4"/>
+      <rect class="lid" x="52" y="34" width="96" height="28" rx="8"/>
+      <rect x="86" y="44" width="28" height="6" rx="3" fill="var(--accent-ink)" opacity=".55"/>
+    </svg>
+    <div>
+      <div class="bal-label">ご褒美に使える残高</div>
+      <div class="bal num" id="bal"><small>¥</small>0</div>
+      <div class="next" id="next">ご褒美リストに欲しいものを入れると、あといくらか分かります</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">累計の貯金</div><div class="v num" id="sTotal">¥0</div></div>
+      <div class="stat"><div class="k">連続日数</div><div class="v num" id="sStreak">0<small>日</small></div></div>
+      <div class="stat"><div class="k">ガマン</div><div class="v num" id="sCount">0<small>回</small></div></div>
+      <div class="stat"><div class="k">運動</div><div class="v num" id="sPlus">0<small>回</small></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>今、何をガマンした？</h2>
+    <p class="sub">タップすると、その金額がびんに入ります</p>
+    <div class="chips" id="chips"></div>
+    <form class="custom" id="customForm" autocomplete="off">
+      <input class="field" id="cName" placeholder="その他（例：タピオカ）" maxlength="30" aria-label="ガマンしたもの">
+      <input class="field num" id="cAmt" type="number" inputmode="numeric" min="1" max="100000" placeholder="金額" aria-label="金額（円）">
+      <button class="btn" type="submit">入れる</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>がんばった！</h2>
+    <p class="sub">運動した日も、ご褒美が貯まります</p>
+    <div class="chips plus" id="plusChips"></div>
+  </section>
+
+  <section>
+    <h2>ご褒美リスト</h2>
+    <p class="sub">貯まったら、ボタンを押して自分にプレゼント</p>
+    <div class="wishes" id="wishes"></div>
+    <form class="addwish" id="wishForm" autocomplete="off">
+      <input class="field" id="wName" placeholder="欲しいもの（例：新作リップ）" maxlength="30" aria-label="欲しいもの">
+      <input class="field num" id="wAmt" type="number" inputmode="numeric" min="1" max="1000000" placeholder="値段" aria-label="値段（円）">
+      <button class="btn ghost" type="submit">追加</button>
+    </form>
+    <div class="got" id="got"></div>
+  </section>
+
+  <section>
+    <h2>きろく</h2>
+    <p class="sub" id="monthLine">今月のガマン ¥0</p>
+    <ul class="log" id="log"></ul>
+    <button class="btn ghost more" id="more" hidden>もっと見る</button>
+  </section>
+
+  <section>
+    <h2>バックアップ</h2>
+    <p class="sub">記録はこのスマホの中だけに保存されます。機種変更の前などに書き出しておくと安心です</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" id="exp" type="button">記録を書き出す</button>
+      <label class="btn ghost" for="imp" style="cursor:pointer">記録を読み込む</label>
+      <input type="file" id="imp" accept="application/json,.json" hidden>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+(function(){
+const PRESETS=[
+  {n:'コンビニスイーツ',a:300,e:'🍮'},{n:'カフェのドリンク',a:600,e:'🥤'},
+  {n:'ファストフード',a:750,e:'🍔'},{n:'ケーキ',a:550,e:'🍰'},
+  {n:'アイス',a:250,e:'🍦'},{n:'お菓子',a:200,e:'🍫'}];
+const PLUS=[
+  {n:'ジムでトレーニング',a:500,e:'🏋️'},{n:'ランニング 5km',a:500,e:'🏃‍♀️'},
+  {n:'ランニング 10km',a:1000,e:'🏅'}];
+const K='gaman-v1';
+const $=id=>document.getElementById(id);
+const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
+const uid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+
+let items=loadLocal(), mode='local', col=null, shownBal=0, coinCount=-1, logLimit=20, armed=null, armTimer;
+
+function loadLocal(){try{const v=JSON.parse(localStorage.getItem(K));return Array.isArray(v)?v:[]}catch(e){return[]}}
+function saveLocal(){try{localStorage.setItem(K,JSON.stringify(items))}catch(e){}}
+
+async function put(o){
+  const i=items.findIndex(x=>x.id===o.id); if(i>=0)items[i]=o; else items.push(o);
+  render();
+  if(mode==='db'){try{await col.doc(o.id).set(o)}catch(e){toast('保存できませんでした。通信を確認してください')}}
+  else saveLocal();
+}
+async function drop(id){
+  items=items.filter(x=>x.id!==id); render();
+  if(mode==='db'){try{await col.doc(id).delete()}catch(e){toast('削除できませんでした')}}
+  else saveLocal();
+}
+
+function calc(){
+  const saves=items.filter(x=>x.kind==='save'), buys=items.filter(x=>x.kind==='buy');
+  const total=saves.reduce((s,x)=>s+x.amount,0), spent=buys.reduce((s,x)=>s+x.amount,0);
+  const days=new Set(saves.map(x=>dayKey(x.ts)));
+  let streak=0; const d=new Date(); if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){streak++;d.setDate(d.getDate()-1)}
+  const now=new Date(), month=saves.filter(x=>{const t=new Date(x.ts);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear()}).reduce((s,x)=>s+x.amount,0);
+  return {saves,total,balance:total-spent,streak,month};
+}
+
+function render(){
+  const c=calc();
+  animateBal(c.balance);
+  $('sTotal').textContent=yen(c.total);
+  const nPlus=c.saves.filter(x=>x.tag==='plus').length;
+  $('sCount').innerHTML=(c.saves.length-nPlus)+'<small>回</small>';
+  $('sPlus').innerHTML=nPlus+'<small>回</small>';
+  $('sStreak').innerHTML=c.streak+'<small>日</small>';
+  $('monthLine').textContent='今月のガマン '+yen(c.month);
+
+  const wishes=items.filter(x=>x.kind==='wish'&&!x.done).sort((a,b)=>a.price-b.price);
+  const target=wishes.find(w=>w.price>c.balance);
+  const ready=wishes.filter(w=>w.price<=c.balance);
+  const nx=$('next');
+  if(target)nx.innerHTML='「'+esc(target.name)+'」まで あと <b>'+yen(target.price-c.balance)+'</b>';
+  else if(ready.length)nx.innerHTML='<b>'+esc(ready[ready.length-1].name)+'</b> が買えます！';
+  else nx.textContent='ご褒美リストに欲しいものを入れると、あといくらか分かります';
+
+  // jar
+  const goal=target?target.price:Math.max(c.balance,5000);
+  const ratio=Math.max(0,Math.min(1,c.balance/goal));
+  const h=170*ratio, L=$('liquid'); L.setAttribute('y',240-h); L.setAttribute('height',h);
+  drawCoins(c.saves.slice().sort((a,b)=>a.ts-b.ts));
+
+  // wishes
+  $('wishes').innerHTML=wishes.length?wishes.map(w=>{
+    const ok=w.price<=c.balance, pct=Math.min(100,c.balance/w.price*100);
+    const isArmed=armed==='buy'+w.id;
+    return '<div class="wish'+(ok?' ready':'')+'"><div><div class="n">'+esc(w.name)+'</div><div class="p num">'+yen(w.price)+'</div></div>'+
+      '<button class="btn" data-buy="'+w.id+'"'+(ok?'':' disabled')+'>'+(isArmed?yen(w.price)+'使う？':(ok?'買う！':Math.floor(pct)+'%'))+'</button>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="x"><span>'+(ok?'貯まりました':'あと '+yen(w.price-c.balance))+'</span><button class="linkbtn" data-delw="'+w.id+'">'+(armed==='del'+w.id?'本当に消す？':'リストから外す')+'</button></div></div>';
+  }).join(''):'<div class="empty">まだご褒美がありません。<br>下の欄に、ガマンの先に買いたいもの（服、コスメなど）を入れてください。</div>';
+  const got=items.filter(x=>x.kind==='wish'&&x.done);
+  $('got').innerHTML=got.length?got.map(w=>'<span>✓ '+esc(w.name)+'</span>').join(''):'';
+
+  // log
+  const log=items.filter(x=>x.kind==='save'||x.kind==='buy').sort((a,b)=>b.ts-a.ts);
+  const wd='日月火水木金土';
+  $('log').innerHTML=log.length?log.slice(0,logLimit).map(x=>{
+    const d=new Date(x.ts), isArmed=armed==='log'+x.id;
+    return '<li><span class="d num">'+(d.getMonth()+1)+'/'+d.getDate()+'('+wd[d.getDay()]+')</span><span class="nm">'+(x.kind==='buy'?'ご褒美：':x.tag==='plus'?'運動：':'')+esc(x.name)+'</span>'+
+      '<span class="am num '+(x.kind==='buy'?'minus':x.tag==='plus'?'pl':'plus')+'">'+(x.kind==='buy'?'−':'+')+yen(x.amount)+'</span>'+
+      '<button class="del'+(isArmed?' armed':'')+'" data-dellog="'+x.id+'" aria-label="この記録を消す">'+(isArmed?'消す':'×')+'</button></li>';
+  }).join(''):'<li style="display:block;color:var(--muted);font-size:13px;text-align:center">ガマンしたら、上のボタンをタップ。ここに記録が並びます。</li>';
+  $('more').hidden=log.length<=logLimit;
+}
+
+function drawCoins(list){
+  const g=$('coins'), max=56, show=Math.min(list.length,max), prev=coinCount;
+  let html='', i=0, row=0;
+  while(i<show){
+    const odd=row%2, cols=odd?5:6;
+    for(let k=0;k<cols&&i<show;k++,i++){
+      const x=(odd?57:46)+k*22, y=226-row*15;
+      const cls='coin c'+(i%3)+(list[i].tag==='plus'?' p':'')+(prev>=0&&i>=prev?' drop':'');
+      html+='<g class="'+cls+'" style="--d:'+((i-Math.max(prev,0))*0.06)+'s"><circle cx="'+x+'" cy="'+y+'" r="10"/><circle cx="'+x+'" cy="'+y+'" r="6"/></g>';
+    }
+    row++;
+  }
+  if(g._html!==html){g.innerHTML=html;g._html=html}
+  coinCount=show;
+}
+
+let balAnim;
+function animateBal(to){
+  cancelAnimationFrame(balAnim);
+  const from=shownBal, t0=performance.now(), el=$('bal');
+  const step=t=>{const p=Math.min(1,(t-t0)/600), e=1-Math.pow(1-p,3), v=from+(to-from)*e;
+    el.innerHTML='<small>¥</small>'+Math.round(v).toLocaleString('ja-JP'); if(p<1)balAnim=requestAnimationFrame(step); else shownBal=to};
+  if(from===to){el.innerHTML='<small>¥</small>'+to.toLocaleString('ja-JP');return}
+  balAnim=requestAnimationFrame(step);
+}
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200)}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const box=$('confetti'), cols=['var(--accent)','var(--gold)','var(--mint)','var(--accent-soft)'];
+  for(let i=0;i<40;i++){const s=document.createElement('i');s.style.left=Math.random()*100+'%';s.style.background=cols[i%4];
+    s.style.animationDelay=Math.random()*.4+'s';s.style.animationDuration=(1.2+Math.random()*.8)+'s';box.appendChild(s)}
+  setTimeout(()=>box.innerHTML='',2400);
+}
+function arm(key){armed=key;clearTimeout(armTimer);armTimer=setTimeout(()=>{armed=null;render()},3500);render()}
+
+function addSave(name,amount,tag){
+  const o={id:uid(),kind:'save',name,amount,ts:Date.now()}; if(tag)o.tag=tag;
+  put(o);
+  const b=$('bal');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');
+  const lines=tag==='plus'?['おつかれさま！','ナイスラン！','よく動いた！','体もお財布も前進']:['えらい！','ナイスガマン！','ご褒美に一歩前進','その調子！','未来の自分が喜んでる'];
+  toast(lines[Math.floor(Math.random()*lines.length)]+' +'+yen(amount));
+}
+
+$('chips').innerHTML=PRESETS.map((p,i)=>'<button class="chip" data-p="'+i+'"><span class="em" aria-hidden="true">'+p.e+'</span><span><span class="t">'+p.n+'</span><span class="a num">'+yen(p.a)+'</span></span></button>').join('');
+$('chips').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;const p=PRESETS[+b.dataset.p];addSave(p.n,p.a)});
+$('plusChips').innerHTML=PLUS.map((p,i)=>'<button class="chip" data-q="'+i+'"><span class="em" aria-hidden="true">'+p.e+'</span><span><span class="t">'+p.n+'</span><span class="a num">+'+yen(p.a)+'</span></span></button>').join('');
+$('plusChips').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const p=PLUS[+b.dataset.q];addSave(p.n,p.a,'plus')});
+$('customForm').addEventListener('submit',e=>{e.preventDefault();const n=$('cName').value.trim()||'その他',a=Math.round(+$('cAmt').value);
+  if(!(a>0)){toast('金額を入れてください');$('cAmt').focus();return}addSave(n,a);$('cName').value='';$('cAmt').value=''});
+$('wishForm').addEventListener('submit',e=>{e.preventDefault();const n=$('wName').value.trim(),a=Math.round(+$('wAmt').value);
+  if(!n){toast('欲しいものを入れてください');$('wName').focus();return}if(!(a>0)){toast('値段を入れてください');$('wAmt').focus();return}
+  put({id:uid(),kind:'wish',name:n,price:a,done:false,ts:Date.now()});$('wName').value='';$('wAmt').value='';toast('「'+n+'」をリストに追加しました')});
+$('wishes').addEventListener('click',e=>{
+  const b=e.target.closest('[data-buy]'), d=e.target.closest('[data-delw]');
+  if(b){const w=items.find(x=>x.id===b.dataset.buy);if(!w)return;
+    if(armed!=='buy'+w.id){arm('buy'+w.id);return}
+    armed=null;put({...w,done:true});put({id:uid(),kind:'buy',name:w.name,amount:w.price,wishId:w.id,ts:Date.now()});
+    confetti();toast('おめでとう！「'+w.name+'」をゲット');}
+  if(d){const id=d.dataset.delw;if(armed!=='del'+id){arm('del'+id);return}armed=null;drop(id)}
+});
+$('log').addEventListener('click',e=>{const d=e.target.closest('[data-dellog]');if(!d)return;const id=d.dataset.dellog;
+  if(armed!=='log'+id){arm('log'+id);return}armed=null;
+  const x=items.find(i=>i.id===id); if(x&&x.kind==='buy'&&x.wishId){const w=items.find(i=>i.id===x.wishId);if(w)put({...w,done:false})}
+  drop(id);toast('記録を消しました')});
+$('exp').addEventListener('click',()=>{const b=new Blob([JSON.stringify(items,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);const d=new Date();a.download='gaman-'+d.getFullYear()+(d.getMonth()+1)+d.getDate()+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('書き出しました')});
+$('imp').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const v=JSON.parse(await f.text());
+  if(!Array.isArray(v))throw 0;const ids=new Set(items.map(x=>x.id));let n=0;for(const o of v){if(o&&o.id&&!ids.has(o.id)){items.push(o);n++}}
+  saveLocal();render();toast(n+'件の記録を読み込みました')}catch(err){toast('このファイルは読み込めませんでした')}e.target.value=''});
+$('more').addEventListener('click',()=>{logLimit+=30;render()});
+
+render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+
+</body></html>
